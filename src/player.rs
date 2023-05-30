@@ -1,4 +1,4 @@
-use crate::Tank;
+use crate::{bullet::Velocity, Tank};
 use bevy::prelude::*;
 
 const PLAYER_COLOR: Color = Color::BLUE;
@@ -40,6 +40,8 @@ fn move_player(
     window: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform)>,
     keyboard_input: Res<Input<KeyCode>>,
+    mouse_input: Res<Input<MouseButton>>,
+    mut commands: Commands,
 ) {
     let mut player = query.single_mut();
     let mut up = false;
@@ -87,5 +89,15 @@ fn move_player(
         let diff = target - pos;
         let angle = diff.y.atan2(diff.x);
         player.rotation = Quat::from_rotation_z(angle);
+    }
+    if keyboard_input.just_pressed(KeyCode::Space) || mouse_input.just_pressed(MouseButton::Left) {
+        crate::bullet::new_bullet(
+            &mut commands,
+            player.translation,
+            Velocity {
+                angle: player.rotation.z,
+                speed: 3.0,
+            },
+        );
     }
 }
