@@ -1,5 +1,3 @@
-use std::f32::consts::PI;
-
 use bevy::prelude::*;
 
 const BULLET_COLOR: Color = Color::WHITE;
@@ -9,10 +7,7 @@ const BULLET_SIZE: Vec3 = Vec3::new(5.0, 5.0, 0.0);
 pub struct Bullet;
 
 #[derive(Component, Clone, Copy, Debug)]
-pub struct Velocity {
-    pub angle: f32,
-    pub speed: f32,
-}
+pub struct Speed(pub f32);
 
 impl Plugin for Bullet {
     fn build(&self, app: &mut bevy::prelude::App) {
@@ -20,10 +15,10 @@ impl Plugin for Bullet {
     }
 }
 
-pub fn new_bullet(commands: &mut Commands, starting_pos: Vec3, velocity: Velocity) {
+pub fn new_bullet(commands: &mut Commands, starting_pos: Vec3, speed: f32, rotation: Quat) {
     commands.spawn((
         Bullet,
-        velocity,
+        Speed(speed),
         SpriteBundle {
             sprite: Sprite {
                 color: BULLET_COLOR,
@@ -32,17 +27,16 @@ pub fn new_bullet(commands: &mut Commands, starting_pos: Vec3, velocity: Velocit
             transform: Transform {
                 translation: starting_pos,
                 scale: BULLET_SIZE,
-                rotation: Quat::from_rotation_z(velocity.angle),
+                rotation,
             },
             ..default()
         },
     ));
 }
 
-fn move_bullets(mut query: Query<(&Velocity, &mut Transform), With<Bullet>>) {
+fn move_bullets(mut query: Query<(&Speed, &mut Transform), With<Bullet>>, dt: Res<Time>) {
     for (vel, mut trans) in &mut query {
-        let (y, x) = (vel.angle).sin_cos();
-        eprintln!("{} {} {:?}", x, y, vel);
-        trans.translation += Vec3::from((x * vel.speed, y * vel.speed, 0.));
+        let delta = trans.right() * dt.delta_seconds() * vel.0;
+        trans.translation += delta;
     }
 }

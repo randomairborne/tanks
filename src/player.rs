@@ -1,9 +1,8 @@
-use crate::{bullet::Velocity, Tank};
+use crate::Tank;
 use bevy::prelude::*;
 
 const PLAYER_COLOR: Color = Color::BLUE;
-const PLAYER_SPEED: f32 = 1.0;
-const TURRET_SIZE: Vec3 = Vec3::new(20.0, 20.0, 0.0);
+const PLAYER_SPEED: f32 = 10.0;
 const TANK_SIZE: Vec3 = Vec3::new(40.0, 40.0, 0.0);
 const PLAYER_SPEED_OVER_SQRT_2: f32 = PLAYER_SPEED / std::f32::consts::SQRT_2;
 
@@ -37,11 +36,12 @@ fn spawn_player(mut commands: Commands) {
 
 fn move_player(
     mut query: Query<&mut Transform, With<Player>>,
+    mut commands: Commands,
     window: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform)>,
     keyboard_input: Res<Input<KeyCode>>,
     mouse_input: Res<Input<MouseButton>>,
-    mut commands: Commands,
+    dt: Res<Time>,
 ) {
     let mut player = query.single_mut();
     let mut up = false;
@@ -51,31 +51,31 @@ fn move_player(
     if keyboard_input.any_pressed([KeyCode::W, KeyCode::Up]) {
         up = true;
     }
-    if keyboard_input.any_pressed([KeyCode::D, KeyCode::Down]) {
+    if keyboard_input.any_pressed([KeyCode::S, KeyCode::Down]) {
         down = true;
     }
     if keyboard_input.any_pressed([KeyCode::A, KeyCode::Left]) {
         left = true;
     }
-    if keyboard_input.any_pressed([KeyCode::S, KeyCode::Right]) {
+    if keyboard_input.any_pressed([KeyCode::D, KeyCode::Right]) {
         right = true;
     }
-    let distance = if (up || down) && (left || right) {
+    let speed = if (up || down) && (left || right) {
         PLAYER_SPEED_OVER_SQRT_2
     } else {
         PLAYER_SPEED
     };
     if up {
-        player.translation.y += distance;
+        player.translation.y += speed * dt.delta_seconds() * speed;
     }
     if down {
-        player.translation.y -= distance;
+        player.translation.y -= speed * dt.delta_seconds() * speed;
     }
     if left {
-        player.translation.x -= distance;
+        player.translation.x -= speed * dt.delta_seconds() * speed;
     }
     if right {
-        player.translation.x += distance;
+        player.translation.x += speed * dt.delta_seconds() * speed;
     }
     let (camera, camera_transform) = camera_q.single();
     if let Some(mouse) = window
@@ -91,13 +91,6 @@ fn move_player(
         player.rotation = Quat::from_rotation_z(angle);
     }
     if keyboard_input.just_pressed(KeyCode::Space) || mouse_input.just_pressed(MouseButton::Left) {
-        crate::bullet::new_bullet(
-            &mut commands,
-            player.translation,
-            Velocity {
-                angle: player.rotation.z,
-                speed: 3.0,
-            },
-        );
+        crate::bullet::new_bullet(&mut commands, player.translation, 300.0, player.rotation);
     }
 }
