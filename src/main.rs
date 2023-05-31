@@ -16,8 +16,10 @@ fn main() {
         .run();
 }
 
-fn setup(mut commands: Commands) {
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>, audio: Res<Audio>) {
     commands.spawn(Camera2dBundle::default());
+        let music = asset_server.load("sounds/music/tanks.wav");
+        audio.play(music);
 }
 
 #[derive(Component, Clone, Copy, Debug, Default)]
