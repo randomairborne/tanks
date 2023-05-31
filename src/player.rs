@@ -2,8 +2,12 @@ use crate::Tank;
 use bevy::prelude::*;
 
 const PLAYER_COLOR: Color = Color::BLUE;
+const TURRET_COLOR: Color = Color::LIME_GREEN;
 const PLAYER_SPEED: f32 = 10.0;
-const TANK_SIZE: Vec3 = Vec3::new(40.0, 40.0, 0.0);
+const TANK_SIZE: Vec3 = Vec3::new(40.0, 40.0, 1.0);
+const TURRET_SIZE: Vec3 = Vec3::new(0.7, 0.7, 1.0);
+const BARREL_SIZE: Vec3 = Vec3::new(1.2, 0.2, 1.0);
+const MUZZLE_SIZE: Vec3 = Vec3::new(0.2, 0.35, 1.0);
 const PLAYER_SPEED_OVER_SQRT_2: f32 = PLAYER_SPEED / std::f32::consts::SQRT_2;
 
 #[derive(Component)]
@@ -11,39 +15,105 @@ pub struct Player;
 
 impl Plugin for Player {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_startup_system(spawn_player).add_system(move_player);
+        app.add_startup_system(spawn_player)
+            .add_system(move_player)
+            .add_system(fire_bullets.after(move_player));
     }
 }
+#[derive(Component)]
+pub struct Turret;
+
+#[derive(Component)]
+pub struct Barrel;
+
+#[derive(Component)]
+pub struct Muzzle;
 
 fn spawn_player(mut commands: Commands) {
-    commands.spawn((
-        Tank,
-        Player,
-        SpriteBundle {
-            sprite: Sprite {
-                color: PLAYER_COLOR,
+    let barrel = commands
+        .spawn((
+            Barrel,
+            Player,
+            SpriteBundle {
+                sprite: Sprite {
+                    color: TURRET_COLOR,
+                    ..Default::default()
+                },
+                transform: Transform {
+                    translation: Vec3::new(0.4, 0.0, 1.0),
+                    scale: BARREL_SIZE,
+                    ..default()
+                },
                 ..default()
             },
-            transform: Transform {
-                translation: Vec3::new(0.0, 0.0, 0.0),
-                scale: TANK_SIZE,
+        ))
+        .id();
+    let muzzle = commands
+        .spawn((
+            Muzzle,
+            Player,
+            SpriteBundle {
+                sprite: Sprite {
+                    color: TURRET_COLOR,
+                    ..Default::default()
+                },
+                transform: Transform {
+                    translation: Vec3::new(0.9, 0.0, 1.0),
+                    scale: MUZZLE_SIZE,
+                    ..default()
+                },
                 ..default()
             },
-            ..default()
-        },
-    ));
+        ))
+        .id();
+    let turret = commands
+        .spawn((
+            Turret,
+            Player,
+            SpriteBundle {
+                sprite: Sprite {
+                    color: TURRET_COLOR,
+                    ..Default::default()
+                },
+                transform: Transform {
+                    translation: Vec3::new(0.0, 0.0, 1.0),
+                    scale: TURRET_SIZE,
+                    ..default()
+                },
+                ..default()
+            },
+        ))
+        .add_child(barrel)
+        .add_child(muzzle)
+        .id();
+    commands
+        .spawn((
+            Tank,
+            Player,
+            SpriteBundle {
+                sprite: Sprite {
+                    color: PLAYER_COLOR,
+                    ..default()
+                },
+                transform: Transform {
+                    translation: Vec3::new(0.0, 0.0, 0.0),
+                    scale: TANK_SIZE,
+                    ..default()
+                },
+                ..default()
+            },
+        ))
+        .add_child(turret);
 }
 
 fn move_player(
-    mut query: Query<&mut Transform, With<Player>>,
-    mut commands: Commands,
+    mut query: Query<(&mut Transform, &Player, &Tank)>,
     window: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform)>,
     keyboard_input: Res<Input<KeyCode>>,
-    mouse_input: Res<Input<MouseButton>>,
     dt: Res<Time>,
 ) {
-    let mut player = query.single_mut();
+    let mut player = query.single_mut().0;
     let mut up = false;
     let mut down = false;
     let mut left = false;
@@ -90,7 +160,17 @@ fn move_player(
         let angle = diff.y.atan2(diff.x);
         player.rotation = Quat::from_rotation_z(angle);
     }
+}
+
+fn fire_bullets(
+    mut query: Query<&mut GlobalTransform, With<Muzzle>>,
+    keyboard_input: Res<Input<KeyCode>>,
+    mouse_input: Res<Input<MouseButton>>,
+    mut commands: Commands,
+) {
+    let (_scale, rotation, translation) = query.single_mut().to_scale_rotation_translation();
+    let translation = Vec3::new(translation.x, translation.y, 0.0);
     if keyboard_input.just_pressed(KeyCode::Space) || mouse_input.just_pressed(MouseButton::Left) {
-        crate::bullet::new_bullet(&mut commands, player.translation, 300.0, player.rotation);
+        crate::bullet::new_bullet(&mut commands, translation, 300.0, rotation);
     }
 }

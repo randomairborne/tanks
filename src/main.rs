@@ -20,5 +20,5 @@ fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
 }
 
-#[derive(Component)]
+#[derive(Component, Clone, Copy, Debug, Default)]
 pub struct Tank;
