@@ -7,7 +7,15 @@ use player::Player;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "Tanks!".into(),
+                fit_canvas_to_parent: true,
+                prevent_default_event_handling: false,
+                ..default()
+            }),
+            ..default()
+        }))
         .add_plugin(Player)
         .add_plugin(Bullet)
         .add_startup_system(setup)
