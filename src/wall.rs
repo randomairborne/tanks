@@ -7,9 +7,15 @@ const TOP_WALL: f32 = 300.;
 
 const WALL_THICKNESS: f32 = 30.;
 const WALL_COLOR: Color = Color::BLACK;
+use bevy_rapier2d::prelude::*;
 
 #[derive(Component)]
-pub struct WallBundle(pub SpriteBundle);
+pub struct WallBundle {
+    pub sprite: SpriteBundle,
+    pub body: RigidBody,
+    pub collide: Collider,
+}
+
 pub enum WallLocation {
     Left,
     Right,
@@ -46,9 +52,9 @@ impl WallLocation {
 
 impl WallBundle {
     pub fn new(location: WallLocation) -> WallBundle {
-        WallBundle(SpriteBundle {
+        let sprite = SpriteBundle {
             transform: Transform {
-                translation: location.position().extend(0.0),
+                translation: location.position().extend(1.0),
                 scale: location.size().extend(1.0),
                 ..default()
             },
@@ -57,6 +63,9 @@ impl WallBundle {
                 ..default()
             },
             ..default()
-        })
+        };
+        let body = RigidBody::Fixed;
+        let collide = Collider::cuboid(sprite.transform.scale.x, sprite.transform.scale.y);
+        WallBundle { sprite, collide, body }
     }
 }

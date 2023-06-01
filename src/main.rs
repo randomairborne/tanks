@@ -3,6 +3,7 @@ mod player;
 mod wall;
 
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
 use bullet::Bullet;
 use player::Player;
 use wall::{WallBundle, WallLocation};
@@ -18,8 +19,8 @@ fn main() {
             }),
             ..default()
         }))
+        .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
         .add_plugin(Player)
-        .add_plugin(Bullet)
         .add_startup_system(setup)
         .insert_resource(FixedTime::new_from_secs(1.0 / 20.0))
         .add_system(bevy::window::close_on_esc)
@@ -32,8 +33,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, audio: Res<Audi
     commands.spawn(WallBundle::new(WallLocation::Right));
     commands.spawn(WallBundle::new(WallLocation::Bottom));
     commands.spawn(WallBundle::new(WallLocation::Top));
-    let music = asset_server.load("sounds/music/tanks.wav");
-    audio.play(music);
+    // let music = asset_server.load("sounds/music/tanks.wav");
+    // audio.play(music);
 }
 
 #[derive(Component, Clone, Copy, Debug, Default)]

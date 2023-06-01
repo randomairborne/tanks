@@ -3,6 +3,7 @@ use crate::{
     Tank,
 };
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
 
 const PLAYER_COLOR: Color = Color::BLUE;
 const TURRET_COLOR: Color = Color::LIME_GREEN;
@@ -99,7 +100,7 @@ fn spawn_player(mut commands: Commands) {
                     ..default()
                 },
                 transform: Transform {
-                    translation: Vec3::new(0.0, 0.0, 0.0),
+                    translation: Vec3::new(0.0, 0.0, 1.0),
                     scale: TANK_SIZE,
                     ..default()
                 },
@@ -172,19 +173,19 @@ fn fire_bullets(
     mouse_input: Res<Input<MouseButton>>,
     mut commands: Commands,
 ) {
-    let (gltrans, _muzzle, _player, own_entity) = fireer.single();
-    let mut bullets_already = 0;
-    for ParentTank(bullet) in &existing {
-        if bullet == &own_entity {
-            bullets_already += 1;
-            if bullets_already >= 1000 {
-                return;
+    if keyboard_input.just_pressed(KeyCode::Space) || mouse_input.just_pressed(MouseButton::Left) {
+        let (gltrans, _muzzle, _player, own_entity) = fireer.single();
+        let mut bullets_already = 0;
+        for ParentTank(bullet) in &existing {
+            if bullet == &own_entity {
+                bullets_already += 1;
+                if bullets_already >= 500000000 {
+                    return;
+                }
             }
         }
-    }
-    let (_scale, rotation, translation) = gltrans.to_scale_rotation_translation();
-    let translation = Vec3::new(translation.x, translation.y, 0.0);
-    if keyboard_input.pressed(KeyCode::Space) || mouse_input.pressed(MouseButton::Left) {
+        let (_scale, rotation, translation) = gltrans.to_scale_rotation_translation();
+        let translation = Vec3::new(translation.x, translation.y, 1.0);
         crate::bullet::new_bullet(
             &mut commands,
             translation,
