@@ -1,4 +1,7 @@
-use crate::Tank;
+use crate::{
+    bullet::{Bullet, ParentTank, STANDARD_BULLET_SPEED},
+    Tank,
+};
 use bevy::prelude::*;
 
 const PLAYER_COLOR: Color = Color::BLUE;
@@ -163,14 +166,31 @@ fn move_player(
 }
 
 fn fire_bullets(
-    mut query: Query<&mut GlobalTransform, With<Muzzle>>,
+    fireer: Query<(&mut GlobalTransform, &Muzzle, &Player, Entity)>,
+    existing: Query<&ParentTank, With<Bullet>>,
     keyboard_input: Res<Input<KeyCode>>,
     mouse_input: Res<Input<MouseButton>>,
     mut commands: Commands,
 ) {
-    let (_scale, rotation, translation) = query.single_mut().to_scale_rotation_translation();
+    let (gltrans, _muzzle, _player, own_entity) = fireer.single();
+    let mut bullets_already = 0;
+    for ParentTank(bullet) in &existing {
+        if bullet == &own_entity {
+            bullets_already += 1;
+            if bullets_already >= 1000 {
+                return;
+            }
+        }
+    }
+    let (_scale, rotation, translation) = gltrans.to_scale_rotation_translation();
     let translation = Vec3::new(translation.x, translation.y, 0.0);
-    if keyboard_input.just_pressed(KeyCode::Space) || mouse_input.just_pressed(MouseButton::Left) {
-        crate::bullet::new_bullet(&mut commands, translation, 300.0, rotation);
+    if keyboard_input.pressed(KeyCode::Space) || mouse_input.pressed(MouseButton::Left) {
+        crate::bullet::new_bullet(
+            &mut commands,
+            translation,
+            STANDARD_BULLET_SPEED,
+            rotation,
+            own_entity,
+        );
     }
 }

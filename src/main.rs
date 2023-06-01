@@ -1,9 +1,11 @@
 mod bullet;
 mod player;
+mod wall;
 
 use bevy::prelude::*;
 use bullet::Bullet;
 use player::Player;
+use wall::{WallBundle, WallLocation};
 
 fn main() {
     App::new()
@@ -26,9 +28,16 @@ fn main() {
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>, audio: Res<Audio>) {
     commands.spawn(Camera2dBundle::default());
-        let music = asset_server.load("sounds/music/tanks.wav");
-        audio.play(music);
+    commands.spawn(WallBundle::new(WallLocation::Left));
+    commands.spawn(WallBundle::new(WallLocation::Right));
+    commands.spawn(WallBundle::new(WallLocation::Bottom));
+    commands.spawn(WallBundle::new(WallLocation::Top));
+    let music = asset_server.load("sounds/music/tanks.wav");
+    audio.play(music);
 }
 
 #[derive(Component, Clone, Copy, Debug, Default)]
 pub struct Tank;
+
+#[derive(Component, Clone, Copy, Debug, Default)]
+pub struct Enemy;
