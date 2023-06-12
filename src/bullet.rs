@@ -34,11 +34,11 @@ pub fn new_bullet(
         ParentTank(parent),
         BounceCount(0),
         RigidBody::Dynamic,
-        Collider::cuboid(10.0, 10.0),
+        Collider::cuboid(1.0, 1.0),
         Velocity {
             linvel: Vec2 {
-                x: x_component * speed,
-                y: y_component * speed,
+                x: x_component * 5.0,
+                y: y_component * 5.0,
             },
             angvel: 0.0,
         },

@@ -1,9 +1,9 @@
 use bevy::prelude::*;
 
-const LEFT_WALL: f32 = -450.;
-const RIGHT_WALL: f32 = 450.;
-const BOTTOM_WALL: f32 = -300.;
-const TOP_WALL: f32 = 300.;
+const LEFT_WALL: f32 = -45.;
+const RIGHT_WALL: f32 = 45.;
+const BOTTOM_WALL: f32 = -30.;
+const TOP_WALL: f32 = 30.;
 
 const WALL_THICKNESS: f32 = 30.;
 const WALL_COLOR: Color = Color::BLACK;
@@ -66,6 +66,10 @@ impl WallBundle {
         };
         let body = RigidBody::Fixed;
         let collide = Collider::cuboid(sprite.transform.scale.x, sprite.transform.scale.y);
-        WallBundle { sprite, collide, body }
+        WallBundle {
+            sprite,
+            collide,
+            body,
+        }
     }
 }
