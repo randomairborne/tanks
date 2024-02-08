@@ -29,6 +29,7 @@ pub fn new_bullet(
     parent: Entity,
 ) {
     let (y_component, x_component) = (rotation.z).sin_cos();
+    println!("{x_component} {y_component}");
     commands.spawn((
         Bullet,
         ParentTank(parent),
@@ -37,8 +38,8 @@ pub fn new_bullet(
         Collider::cuboid(1.0, 1.0),
         Velocity {
             linvel: Vec2 {
-                x: x_component * 5.0,
-                y: y_component * 5.0,
+                x: x_component * speed,
+                y: y_component * speed,
             },
             angvel: 0.0,
         },
